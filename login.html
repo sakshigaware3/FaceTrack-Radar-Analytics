@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - FaceTrack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:Inter,system-ui,sans-serif;background:linear-gradient(135deg,#eff6ff,#f8fafc 55%,#ecfeff)}</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <main class="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
+    <div class="text-center mb-7">
+      <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-100 text-3xl">📸</div>
+      <h1 class="text-3xl font-bold text-slate-800">Face<span class="text-sky-600">Track</span></h1>
+      <p class="mt-1 text-sm text-slate-500">Face Recognition Attendance System</p>
+    </div>
+
+    <div class="mb-6 grid grid-cols-2 gap-3">
+      <button type="button" id="student-tab" class="rounded-xl border-2 border-sky-500 bg-sky-50 p-3 text-sm font-semibold text-sky-700" aria-pressed="true">🎓 Student Login</button>
+      <button type="button" id="teacher-tab" class="rounded-xl border-2 border-slate-200 p-3 text-sm font-semibold text-slate-600" aria-pressed="false">👩‍🏫 Teacher Login</button>
+    </div>
+
+    <form id="student-form" class="space-y-4">
+      <div><label for="student-id" class="mb-1 block text-sm font-medium text-slate-700">Student ID</label><input id="student-id" required autocomplete="username" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" placeholder="Enter your registered Student ID"></div>
+      <p class="text-xs text-slate-500">Use the Student ID registered by your teacher.</p>
+      <button class="w-full rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700" type="submit">Login as Student</button>
+    </form>
+
+    <form id="teacher-form" class="hidden space-y-4">
+      <div><label for="teacher-username" class="mb-1 block text-sm font-medium text-slate-700">Teacher Username</label><input id="teacher-username" required autocomplete="username" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" placeholder="Enter teacher username"></div>
+      <div><label for="teacher-password" class="mb-1 block text-sm font-medium text-slate-700">Password</label><input id="teacher-password" type="password" required autocomplete="current-password" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" placeholder="Enter password"></div>
+      <button class="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700" type="submit">Login as Teacher</button>
+      <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-800"><strong>Demo credentials:</strong> Username <code>teacher</code> · Password <code>Teacher@123</code>. Change these before using the project beyond a demo.</p>
+    </form>
+
+    <p id="login-message" class="mt-4 hidden rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert"></p>
+    <p class="mt-7 text-center text-xs text-slate-400">Secure access portal · FaceTrack Attendance</p>
+  </main>
+<script>
+  const studentTab=document.getElementById('student-tab');
+  const teacherTab=document.getElementById('teacher-tab');
+  const studentForm=document.getElementById('student-form');
+  const teacherForm=document.getElementById('teacher-form');
+  const message=document.getElementById('login-message');
+  function showRole(role){
+    const student=role==='student';
+    studentForm.classList.toggle('hidden',!student); teacherForm.classList.toggle('hidden',student);
+    studentTab.className=student?'rounded-xl border-2 border-sky-500 bg-sky-50 p-3 text-sm font-semibold text-sky-700':'rounded-xl border-2 border-slate-200 p-3 text-sm font-semibold text-slate-600';
+    teacherTab.className=!student?'rounded-xl border-2 border-emerald-500 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700':'rounded-xl border-2 border-slate-200 p-3 text-sm font-semibold text-slate-600';
+    studentTab.setAttribute('aria-pressed',String(student)); teacherTab.setAttribute('aria-pressed',String(!student)); message.classList.add('hidden');
+  }
+  studentTab.addEventListener('click',()=>showRole('student'));
+  teacherTab.addEventListener('click',()=>showRole('teacher'));
+  function fail(text){message.textContent=text;message.classList.remove('hidden');}
+  studentForm.addEventListener('submit',e=>{
+    e.preventDefault(); const id=document.getElementById('student-id').value.trim();
+    const users=JSON.parse(localStorage.getItem('face-attendance-users')||'[]');
+    const user=users.find(item=>String(item.employeeId).toLowerCase()===id.toLowerCase());
+    if(!user){fail('Student ID not found. Ask your teacher to register you first.');return;}
+    sessionStorage.setItem('ftRole','student'); sessionStorage.setItem('ftStudentId',user.employeeId); sessionStorage.setItem('ftUserName',user.name);
+    window.location.href='index.html';
+  });
+  teacherForm.addEventListener('submit',e=>{
+    e.preventDefault(); const username=document.getElementById('teacher-username').value.trim(); const password=document.getElementById('teacher-password').value;
+    if(username==='teacher' && password==='Teacher@123'){
+      sessionStorage.setItem('ftRole','teacher'); sessionStorage.removeItem('ftStudentId'); sessionStorage.setItem('ftUserName','Teacher'); window.location.href='index.html';
+    }else{fail('Incorrect teacher username or password.');}
+  });
+  if(sessionStorage.getItem('ftRole')) window.location.replace('index.html');
+</script>
+</body>
+</html>
